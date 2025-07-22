@@ -27,6 +27,9 @@ import breathingRoutes from "./routes/breathing.js";
 import emergencyRoutes from "./routes/emergency.js";
 import communityRoutes from "./routes/community.js";
 import aboutRoutes from "./routes/about.js";
+import profileRoutes from "./routes/profile.js";
+import { User } from "./models/user.js";
+import AchievementManager from "./utils/achievements/AchievementManager.js";
 
 // Create Express app
 const app = express();
@@ -57,14 +60,19 @@ app.use("/breathing", breathingRoutes);
 app.use("/emergency", emergencyRoutes);
 app.use("/community", communityRoutes);
 app.use("/about",aboutRoutes);
+app.use("/profile", profileRoutes);
 
 // Dashboard route
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard", async (req, res) => {
     // Check if user is logged in
     if (!req.session.user) {
         return res.redirect("/auth/login");
     }
-    res.render("dashboard");
+    // Fetch user with achievements
+    const user = await User.findById(req.session.user._id);
+    const achievementManager = new AchievementManager();
+    const achievements = user.achievements.map(id => achievementManager.getAchievementById(id)).filter(Boolean);
+    res.render("dashboard", { user, achievements });
 });
 
 app.get("/", (req, res) => {

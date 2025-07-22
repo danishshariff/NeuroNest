@@ -1,5 +1,7 @@
 import express from 'express';
 import Mood from '../models/Mood.js';
+import AchievementManager from '../utils/achievements/AchievementManager.js';
+import { User } from '../models/user.js';
 
 const router = express.Router();
 
@@ -59,8 +61,23 @@ router.post('/add', isAuthenticated, async (req, res) => {
         
         const savedMood = await newMood.save();
         console.log('Mood entry saved successfully:', JSON.stringify(savedMood));
-        
-        res.json({ success: true, message: 'Mood entry saved successfully' });
+
+        // --- Achievement logic start ---
+        const achievementManager = new AchievementManager();
+        // Count how many moods the user has logged
+        const userMoodEntryCount = await Mood.countDocuments({ userId: req.session.user._id });
+        // Get the user
+        const user = await User.findById(req.session.user._id);
+        // Check and award achievements
+        const context = {
+            type: 'mood_entry',
+            count: userMoodEntryCount,
+        };
+        const newlyAwarded = await achievementManager.checkAndAward(user, context);
+        console.log('Mood Achievement Debug:', { context, newlyAwarded, userAchievements: user.achievements });
+        // --- Achievement logic end ---
+
+        res.json({ success: true, message: 'Mood entry saved successfully', achievements: newlyAwarded });
     } catch (error) {
         console.error('Error saving mood entry:', error);
         res.status(500).json({ success: false, message: 'Error saving mood entry' });

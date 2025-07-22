@@ -1,5 +1,7 @@
 import express from "express";
 import Message from "../models/message.js";
+import AchievementManager from '../utils/achievements/AchievementManager.js';
+import { User } from '../models/user.js';
 
 const router = express.Router();
 
@@ -92,6 +94,17 @@ router.post("/chat", requireAuth, async (req, res) => {
             user: req.session.userId,
         });
 
+        // --- Achievement logic for first_ai_chat ---
+        const achievementManager = new AchievementManager();
+        const userMessageCount = await Message.countDocuments({ user: req.session.userId, sender: 'user' });
+        const user = await User.findById(req.session.userId);
+        const context = {
+            type: 'ai_chat',
+            count: userMessageCount,
+        };
+        const newlyAwarded = await achievementManager.checkAndAward(user, context);
+        // --- End achievement logic ---
+
         // Return both messages as JSON
         res.json({
             success: true,
@@ -108,6 +121,7 @@ router.post("/chat", requireAuth, async (req, res) => {
                     createdAt: botMessage.createdAt,
                 },
             ],
+            achievements: newlyAwarded,
         });
     } catch (error) {
         console.error("Chat error:", error);

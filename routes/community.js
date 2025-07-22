@@ -1,6 +1,8 @@
 import express from "express";
 import Post from "../models/community/post.js";
 import Answer from "../models/community/answer.js";
+import AchievementManager from '../utils/achievements/AchievementManager.js';
+import { User } from '../models/user.js';
 
 const router = express.Router();
 
@@ -73,6 +75,18 @@ router.post("/", isAuthenticated, async (req, res) => {
         });
 
         await post.save();
+
+        // --- Achievement logic for community_post ---
+        const achievementManager = new AchievementManager();
+        const userPostCount = await Post.countDocuments({ author: req.session.user._id });
+        const user = await User.findById(req.session.user._id);
+        const context = {
+            type: 'community_post',
+            count: userPostCount,
+        };
+        await achievementManager.checkAndAward(user, context);
+        // --- End achievement logic ---
+
         res.redirect(`/community/${post._id}`);
     } catch (err) {
         console.error("Error creating question:", err);
@@ -104,6 +118,17 @@ router.post("/:id/answers", isAuthenticated, async (req, res) => {
         // Add answer reference to the post
         post.answers.push(answer._id);
         await post.save();
+
+        // --- Achievement logic for community_answer ---
+        const achievementManager = new AchievementManager();
+        const userAnswerCount = await Answer.countDocuments({ author: req.session.user._id });
+        const user = await User.findById(req.session.user._id);
+        const context = {
+            type: 'community_answer',
+            count: userAnswerCount,
+        };
+        await achievementManager.checkAndAward(user, context);
+        // --- End achievement logic ---
 
         res.redirect(`/community/${req.params.id}`);
     } catch (err) {

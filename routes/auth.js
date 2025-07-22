@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { User } from "../models/user.js";
+import AchievementManager from '../utils/achievements/AchievementManager.js';
 
 const router = express.Router();
 
@@ -30,6 +31,22 @@ router.post("/login", async (req, res) => {
                 error: "Invalid email or password",
             });
         }
+
+        // Track unique login days
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        if (!user.loginDates.includes(today)) {
+            user.loginDates.push(today);
+            await user.save();
+        }
+
+        // Award active user achievement
+        const achievementManager = new AchievementManager();
+        const context = {
+            type: 'login',
+            uniqueDays: user.loginDates.length,
+            streak: 0 // Optional: implement streak logic if needed
+        };
+        await achievementManager.checkAndAward(user, context);
 
         // Set user session
         req.session.userId = user._id;

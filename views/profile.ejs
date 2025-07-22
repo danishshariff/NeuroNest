@@ -1,0 +1,43 @@
+<%- include('partials/header-logged-in') %>
+
+<section class="profile py-5">
+  <div class="container">
+    <div class="row justify-content-center mb-4">
+      <div class="col-md-7 col-lg-6">
+        <div class="card shadow-lg p-4 text-center" style="border-radius: 1.5rem; background: var(--card-bg);">
+          <div class="mb-3">
+            <i class="fas fa-user-circle fa-4x text-gradient"></i>
+          </div>
+          <h2 class="fw-bold mb-1" style="color: #fff;"> <%= user.name %> </h2>
+          <div class="mb-2" style="color: #fff;"> <%= user.email %> </div>
+        </div>
+      </div>
+    </div>
+
+    <% if (achievements && achievements.length > 0) { %>
+    <div class="achievements-section mx-auto my-4">
+      <div class="section-heading mb-4 text-center">
+        <h2>Your Achievements</h2>
+        <p class="section-subtitle">Badges you have earned on your journey</p>
+      </div>
+      <div class="achievement-badges">
+        <% achievements.forEach(function(ach) { %>
+          <div class="achievement-card">
+            <div class="achievement-icon"> <%= ach.icon %> </div>
+            <div class="achievement-title"> <%= ach.name %> </div>
+            <div class="achievement-desc"> <%= ach.description %> </div>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } else { %>
+      <div class="row justify-content-center">
+        <div class="col-lg-8 text-center text-muted">
+          <p>You haven't earned any achievements yet. Start your journey to unlock badges!</p>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('partials/footer') %> 

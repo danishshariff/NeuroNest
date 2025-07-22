@@ -18,6 +18,14 @@ const UserSchema = new mongoose.Schema(
             type: String,
             required: [true, "please provide password"],
         },
+        achievements: {
+            type: [String],
+            default: [],
+        },
+        loginDates: {
+            type: [String], // Store as ISO date strings (YYYY-MM-DD)
+            default: [],
+        },
     },
     { timestamps: true }
 );
