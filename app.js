@@ -88,14 +88,24 @@ import mongoose from "mongoose";
 
 const PORT = process.env.PORT || 8000;
 const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
-console.log('MONGO_URI:', MONGO_URI);
+console.log('MONGO_URI available:', !!MONGO_URI);
+console.log('MONGO_URI type:', typeof MONGO_URI);
+console.log('MONGO_URI starts with mongodb:', MONGO_URI?.startsWith('mongodb'));
 // Database connection
+if (!MONGO_URI) {
+    console.error('CRITICAL: No MongoDB connection string found!');
+    console.error('Please set MONGODB_URI or MONGO_URI environment variable');
+    process.exit(1);
+}
+
 mongoose.connect(MONGO_URI)
     .then(() => {
-        console.log("Connected to MongoDB successfully");
+        console.log("✅ Connected to MongoDB successfully");
+        console.log("Database connection state:", mongoose.connection.readyState);
     })
     .catch((error) => {
-        console.error("MongoDB connection error:", error);
+        console.error("❌ MongoDB connection error:", error);
+        console.error("This will cause login/register to fail!");
     });
 
 // Start server

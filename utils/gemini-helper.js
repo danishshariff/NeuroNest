@@ -26,14 +26,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const testKey = async () => {
     try {
         // Attempt to get a model instance to test connectivity using the global genAI instance
-        await genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        await genAI.getGenerativeModel({ model: "gemini-pro" });
         console.log("Gemini API Key is valid and connectivity established.");
         return true;
     } catch (e) {
         console.error("Gemini API Key test failed:", e.message || e);
         // Log the specific error for debugging purposes
         console.error(
-            "Please ensure your GEMINI_API_KEY is correct and has access to 'gemini-1.5-flash'."
+            "Please ensure your GEMINI_API_KEY is correct and has access to 'gemini-pro'."
         );
         return false; // Indicate failure
     }
@@ -63,8 +63,8 @@ testKey().then((isValid) => {
  */
 async function getGeminiResponse(userInput, chatHistory = []) {
     try {
-        // Get the generative model
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        // Get the generative model - use gemini-pro which is more widely available
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
         // Define the initial system prompt history (this sets the AI's persona and rules)
         const initialSystemHistory = [
@@ -118,6 +118,9 @@ async function getGeminiResponse(userInput, chatHistory = []) {
         return { responseText, newHistory };
     } catch (error) {
         console.error("Gemini API Error:", error);
+        console.error("Full error details:", JSON.stringify(error, null, 2));
+        console.error("API Key exists:", !!process.env.GEMINI_API_KEY);
+        console.error("API Key starts with AIzaSy:", process.env.GEMINI_API_KEY?.startsWith('AIzaSy'));
 
         // Provide more detailed error logging for debugging purposes, if available
         if (
