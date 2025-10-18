@@ -13,6 +13,7 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 console.log('Environment check:');
 console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'Loaded' : 'Missing');
 console.log('SESSION_SECRET:', process.env.SESSION_SECRET ? 'Loaded' : 'Missing');
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'Loaded' : 'Missing');
 console.log('MONGO_URI:', process.env.MONGO_URI ? 'Loaded' : 'Missing');
 console.log('PORT:', process.env.PORT || 'Using default');
 
@@ -40,10 +41,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
     session({
-        secret: process.env.SESSION_SECRET, // use a secure value in production
+        secret: process.env.SESSION_SECRET || 'fallback-secret-key-change-in-production',
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: false }, // set to true only if using HTTPS
+        cookie: { 
+            secure: process.env.NODE_ENV === 'production' && process.env.HTTPS === 'true',
+            httpOnly: true,
+            maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        },
     })
 );
 
@@ -79,16 +84,13 @@ app.get("/", (req, res) => {
     res.render("index");
 });
 
-app.post("/auth/register", (reqcl, res) => {
-    res.render("index");
-});
-
 import mongoose from "mongoose";
 
 const PORT = process.env.PORT || 8000;
-console.log('MONGO_URI:', process.env.MONGO_URI);
+const MONGO_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
+console.log('MONGO_URI:', MONGO_URI);
 // Database connection
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(MONGO_URI)
     .then(() => {
         console.log("Connected to MongoDB successfully");
     })
